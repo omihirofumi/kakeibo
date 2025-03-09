@@ -10,6 +10,23 @@ pub struct EventMetadata {
     pub occurred_at: DateTime<Utc>,
 }
 
+impl EventMetadata {
+    pub fn new(event_id: Option<Ulid>, occurred_at: Option<DateTime<Utc>>) -> Self {
+        Self {
+            event_id: event_id.unwrap_or_default(),
+            occurred_at: occurred_at.unwrap_or_default(),
+        }
+    }
+
+    pub fn event_id(&self) -> &Ulid {
+        &self.event_id
+    }
+
+    pub fn occurred_at(&self) -> DateTime<Utc> {
+        self.occurred_at
+    }
+}
+
 // トランザクションのタイプ
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum TransactionType {
