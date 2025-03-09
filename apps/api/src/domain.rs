@@ -1,6 +1,8 @@
 pub mod events;
+pub mod transaction;
 
 use chrono::{DateTime, Utc};
+use serde::{Deserialize, Serialize};
 use ulid::Ulid;
 
 // 各EntityのIDの型定義
@@ -11,11 +13,13 @@ pub type CategoryId = EntityId;
 pub type TransactionId = EntityId;
 pub type BudgetId = EntityId;
 
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Money {
     pub amount: i64,
     pub currecy: Currency,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum Currency {
     JPY,
     USD,
