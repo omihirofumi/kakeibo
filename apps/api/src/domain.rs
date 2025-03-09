@@ -1,3 +1,5 @@
+pub mod events;
+
 use chrono::{DateTime, Utc};
 use ulid::Ulid;
 
@@ -22,7 +24,7 @@ pub enum Currency {
 pub trait DomainEvent {
     fn event_type(&self) -> &str;
     fn aggregate_id(&self) -> &EntityId;
-    fn occured_at(&self) -> DateTime<Utc>;
+    fn occurred_at(&self) -> DateTime<Utc>;
 }
 
 pub trait Aggregate {
