@@ -16,7 +16,7 @@ pub type BudgetId = EntityId;
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Money {
     pub amount: i64,
-    pub currecy: Currency,
+    pub currency: Currency,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
