@@ -1,10 +1,11 @@
 [package]
-name = "kakeibo api"
+name = "household-finance-api"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
 chrono = { version = "0.4.40", features = ["serde"] }
-actix-web = "4"
-log = "0.4.26"
-env_logger = "0.11.6"
+serde = { version = "1.0.218", features = ["derive"] }
+serde_json = "1.0.140"
+thiserror = "2.0.12"
+ulid = { version = "1.2.0", features = ["serde"] }
