@@ -1,12 +1,13 @@
-use std::fmt::format;
-
-use actix_web::{web, HttpResponse, Responder, ResponseError};
-use chrono::Utc;
+use actix_web::{
+    web::{self},
+    HttpResponse, ResponseError,
+};
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 use ulid::Ulid;
 
-use crate::domain::{events::TransactionType, Currency};
+use crate::domain::{events::TransactionType, Currency, Money};
 
 #[derive(Debug, Error)]
 pub enum ApiError {
@@ -36,6 +37,7 @@ pub struct CreateTransactionRequest {
     pub currency: Currency,
     pub transaction_type: TransactionType,
     pub description: String,
+    #[serde(default)]
     pub recorded_at: Option<String>,
 }
 
@@ -49,22 +51,56 @@ pub struct TransactionResponse {
     pub recorded_at: String,
 }
 
-pub async fn create_transaction(req: web::Json<CreateTransactionRequest>) -> impl Responder {
+pub async fn create_transaction(
+    req: web::Json<CreateTransactionRequest>,
+) -> Result<HttpResponse, ApiError> {
+    // 検証
+    if req.description.trim().is_empty() {
+        return Err(ApiError::BadRequest("説明は空にできません".to_string()));
+    }
+
+    if req.amount <= 0 {
+        return Err(ApiError::BadRequest(
+            "金額は正の数でなければなりません".to_string(),
+        ));
+    }
+
+    let recorded_at = match &req.recorded_at {
+        Some(date_str) => match DateTime::parse_from_rfc3339(date_str) {
+            Ok(dt) => dt.with_timezone(&Utc),
+            Err(e) => return Err(ApiError::BadRequest(format!("日時の形式が不正です: {}", e))),
+        },
+        None => Utc::now(),
+    };
+
+    let money = Money {
+        amount: req.amount,
+        currency: req.currency.clone(),
+    };
+
     let transaction_id = Ulid::new();
 
-    // TODO: 値のバリデーション
+    // TODO: 実際に記録を作って、登録する
 
-    HttpResponse::Created().json(TransactionResponse {
+    Ok(HttpResponse::Created().json(TransactionResponse {
         id: transaction_id.to_string(),
         amount: req.amount,
-        currency: format!("{:?}", req.currency),
+        currency: format!("{:?}", money.currency),
         transaction_type: format!("{:?}", req.transaction_type),
         description: req.description.clone(),
-        recorded_at: Utc::now().to_rfc3339(),
-    })
+        recorded_at: recorded_at.to_rfc3339(),
+    }))
+}
+
+pub async fn list_transactions() -> Result<HttpResponse, ApiError> {
+    // TODO: 空のリストを返してるが、中身を返すようにする
+    Ok(HttpResponse::Ok().json(Vec::<TransactionResponse>::new()))
 }
 
 pub fn configure_routes(cfg: &mut web::ServiceConfig) {
-    cfg.service(web::scope("/api/transactions"))
-        .route("", web::post().to(create_transaction));
+    cfg.service(
+        web::scope("/api/transactions")
+            .route("", web::post().to(create_transaction))
+            .route("", web::get().to(list_transactions)),
+    );
 }
