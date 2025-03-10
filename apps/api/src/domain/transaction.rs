@@ -59,6 +59,17 @@ impl Transaction {
         Ok((transaction, event))
     }
 
+    pub fn from_event(event: &TransactionRecorded) -> Self {
+        Self {
+            id: event.transaction_id,
+            amount: event.amount.clone(),
+            transaction_type: event.transaction_type.clone(),
+            description: event.description.clone(),
+            recorded_at: event.recorded_at,
+            created_at: event.metadata.occurred_at(),
+        }
+    }
+
     pub fn id(&self) -> &TransactionId {
         &self.id
     }
